@@ -21,7 +21,7 @@ jobs:
           chmod 600 private_key.pem # Set the appropriate permissions for the key file
 
           # Establish an SSH connection and execute commands on the remote server
-          ssh -o StrictHostKeyChecking=no -i private_key.pem user@your-server.com <<EOF
+          ssh -T -o StrictHostKeyChecking=no -i private_key.pem user@your-server.com <<EOF
             # Your server commands go here. Replace these commands with those relevant to your project.
 
             git fetch && git pull
