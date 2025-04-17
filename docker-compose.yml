@@ -9,6 +9,8 @@ services:
     depends_on:
       - qdrant
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   qdrant:
     image: qdrant/qdrant
@@ -19,3 +21,5 @@ services:
       - ./qdrant_storage:/qdrant/storage
       - ./qdrant_config/production.yaml:/qdrant/config/production.yaml
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
