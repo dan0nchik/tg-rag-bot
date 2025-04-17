@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 qdrant_storage
+production.yaml

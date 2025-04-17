@@ -1,8 +1,3 @@
-"""
-bot.py — RAG‑бот на Telebot с автоматическим трекингом новых сообщений,
-группировкой по авторам и индексированием при смене автора
-"""
-
 import logging
 from telebot import TeleBot, logger as telebot_logger
 import config
@@ -82,6 +77,9 @@ def handle_mention_commands(message):
         add_to_history(chat_id, text)
         return bot.reply_to(message, "✅ Запомнил")
 
+    # Сохраняем упоминание пользователя в историю
+    add_to_history(chat_id, text)
+
     # Собираем историю
     history = last_messages.get(chat_id, [])
     bot.send_chat_action(chat_id, "typing")
@@ -91,7 +89,7 @@ def handle_mention_commands(message):
     reply_msg = bot.reply_to(message, answer)
 
     # сохраняем ответ бота в истории и индексируем как отдельный документ
-    add_to_history(chat_id, text)
+    add_to_history(chat_id, f"От @{config.BOT_USERNAME}: {answer}")
     bot_doc = {
         "id": f"{chat_id}_{reply_msg.message_id}",
         "text": f"От @{config.BOT_USERNAME}: {answer}",
@@ -131,6 +129,9 @@ def handle_reply_to_bot(message):
         add_to_history(chat_id, text)
         return bot.reply_to(message, "✅ Запомнил")
 
+    # Сохраняем ответ пользователя в историю
+    add_to_history(chat_id, text)
+
     # Обычный запрос
     history = last_messages.get(chat_id, [])
     bot.send_chat_action(chat_id, "typing")
@@ -138,7 +139,8 @@ def handle_reply_to_bot(message):
 
     reply_msg = bot.reply_to(message, answer)
 
-    add_to_history(chat_id, text)
+    # сохраняем ответ бота в истории и индексируем как отдельный документ
+    add_to_history(chat_id, f"От @{config.BOT_USERNAME}: {answer}")
     bot_doc = {
         "id": f"{chat_id}_{reply_msg.message_id}",
         "text": f"От @{config.BOT_USERNAME}: {answer}",
@@ -184,5 +186,5 @@ def track_messages(message):
 
 
 if __name__ == "__main__":
-    print("🤖 Бот запущен, начинаем polling...")
+    logging.info("Бот запущен")
     bot.infinity_polling(timeout=20, long_polling_timeout=5, skip_pending=False)
