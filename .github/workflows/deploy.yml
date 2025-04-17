@@ -4,7 +4,7 @@ description: Deploys the application to the server using SSH # Description of th
 on:
   push:
     branches:
-      - [main] # Replace with your branch name
+      - main # Replace with your branch name
 jobs:
   deploy:
     runs-on: ubuntu-latest # Run this job on the latest Ubuntu version
