@@ -22,7 +22,7 @@ jobs:
           echo "$PRIVATE_KEY" > private_key.pem # Write the private key to a file
           chmod 600 private_key.pem # Set the appropriate permissions for the key file
 
-          # Establish an SSH connection and execute commands on the remote server
+          # Establish SSH connection and execute commands on the remote server
           ssh -T -o StrictHostKeyChecking=no -i private_key.pem $USER@$SERVER <<EOF
             # Your server commands go here. Replace these commands with those relevant to your project.
 
