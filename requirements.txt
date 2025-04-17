@@ -11,3 +11,4 @@ qdrant-client
 litellm
 python-dotenv
 tqdm
+sentence-transformers

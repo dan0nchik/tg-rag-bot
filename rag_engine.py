@@ -14,11 +14,77 @@ from llama_index.core import get_response_synthesizer
 from qdrant_client import QdrantClient, models
 from llama_index.embeddings.huggingface_optimum import OptimumEmbedding
 
-OptimumEmbedding.create_and_save_optimum_model(
-    "ai-forever/sbert_large_nlu_ru", "./bge_onnx"
-)
+from typing import Any, List, Union
+from sentence_transformers import SentenceTransformer
+from llama_index.core.embeddings import BaseEmbedding
 
-Settings.embed_model = OptimumEmbedding(folder_name="./bge_onnx")
+
+class SentenceTransformerEmbeddings(BaseEmbedding):
+    """
+    Adapter for SentenceTransformer models in llama_index.
+
+    Args:
+        model_name: HuggingFace model identifier for SentenceTransformer.
+        normalize: Whether to normalize embeddings (default True).
+    """
+
+    def __init__(
+        self,
+        model_name: str = "ai-forever/ru-en-RoSBERTa",
+        normalize: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        # Load the SentenceTransformer model
+        self._model = SentenceTransformer(model_name)
+        self.normalize = normalize
+
+    def _get_query_embedding(self, query: str) -> List[float]:
+        """
+        Generate an embedding for a single query string.
+        """
+        embeddings = self._model.encode([query], normalize_embeddings=self.normalize)
+        return (
+            embeddings[0].tolist()
+            if hasattr(embeddings[0], "tolist")
+            else list(embeddings[0])
+        )
+
+    def _get_text_embedding(self, text: str) -> List[float]:
+        """
+        Generate an embedding for a single text string.
+        """
+        embeddings = self._model.encode([text], normalize_embeddings=self.normalize)
+        return (
+            embeddings[0].tolist()
+            if hasattr(embeddings[0], "tolist")
+            else list(embeddings[0])
+        )
+
+    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
+        """
+        Generate embeddings for a list of text strings.
+        """
+        embeddings = self._model.encode(texts, normalize_embeddings=self.normalize)
+        # Ensure Python native lists
+        return [
+            emb.tolist() if hasattr(emb, "tolist") else list(emb) for emb in embeddings
+        ]
+
+    # Async wrappers
+    async def _aget_query_embedding(self, query: str) -> List[float]:  # noqa: F821
+        return self._get_query_embedding(query)
+
+    async def _aget_text_embedding(self, text: str) -> List[float]:  # noqa: F821
+        return self._get_text_embedding(text)
+
+    async def _aget_text_embeddings(
+        self, texts: List[str]
+    ) -> List[List[float]]:  # noqa: F821
+        return self._get_text_embeddings(texts)
+
+
+Settings.embed_model = SentenceTransformerEmbeddings()
 
 Settings.llm = TogetherLLM(
     model=config.LLM_MODEL,
