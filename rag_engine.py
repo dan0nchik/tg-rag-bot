@@ -15,7 +15,7 @@ from qdrant_client import QdrantClient, models
 from llama_index.embeddings.huggingface_optimum import OptimumEmbedding
 
 OptimumEmbedding.create_and_save_optimum_model(
-    "ai-forever/ru-en-RoSBERTa", "./bge_onnx"
+    "ai-forever/sbert_large_nlu_ru", "./bge_onnx"
 )
 
 Settings.embed_model = OptimumEmbedding(folder_name="./bge_onnx")
