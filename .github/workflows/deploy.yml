@@ -25,7 +25,7 @@ jobs:
           # Establish SSH connection and execute commands on the remote server
           ssh -T -o StrictHostKeyChecking=no -i private_key.pem $USER@$SERVER <<EOF
             # Your server commands go here. Replace these commands with those relevant to your project.
-
+            cd tg-rag-bot
             git fetch && git pull
             docker compose up -d --build
           EOF
