@@ -12,10 +12,14 @@ from llama_index.llms.together import TogetherLLM
 import config
 from llama_index.core import get_response_synthesizer
 from qdrant_client import QdrantClient, models
+from llama_index.embeddings.huggingface_optimum import OptimumEmbedding
 
-Settings.embed_model = TogetherEmbedding(
-    model_name=config.EMBEDDING_MODEL, api_key=config.TOGETHER_API_KEY
+OptimumEmbedding.create_and_save_optimum_model(
+    "ai-forever/ru-en-RoSBERTa", "./bge_onnx"
 )
+
+Settings.embed_model = OptimumEmbedding(folder_name="./bge_onnx")
+
 Settings.llm = TogetherLLM(
     model=config.LLM_MODEL,
     api_key=config.TOGETHER_API_KEY,
