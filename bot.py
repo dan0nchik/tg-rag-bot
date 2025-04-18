@@ -82,6 +82,32 @@ def handle_mention_commands(message):
 
     # Собираем историю
     history = last_messages.get(chat_id, [])
+
+    if "загугли" in text.lower():
+        doc = {
+            "id": f"{chat_id}_{message.message_id}",
+            "text": text,
+            "metadata": {
+                "author": username,
+                "date": datetime.now().isoformat(),
+            },
+        }
+
+        bot.send_chat_action(chat_id, "typing")
+        result = rag.search_web(text, username, history)
+        reply_msg = bot.reply_to(message, result)
+        add_to_history(chat_id, f"От @{config.BOT_USERNAME}: {result}")
+        bot_doc = {
+            "id": f"{chat_id}_{reply_msg.message_id}",
+            "text": f"От @{config.BOT_USERNAME}: {result}",
+            "metadata": {
+                "author": f"@{config.BOT_USERNAME}",
+                "date": datetime.now().isoformat(),
+            },
+        }
+        rag.index_documents([bot_doc])
+        return
+
     bot.send_chat_action(chat_id, "typing")
     answer = rag.query(text, username, history)
 
@@ -134,6 +160,32 @@ def handle_reply_to_bot(message):
 
     # Обычный запрос
     history = last_messages.get(chat_id, [])
+
+    if "загугли" in text.lower():
+        doc = {
+            "id": f"{chat_id}_{message.message_id}",
+            "text": text,
+            "metadata": {
+                "author": username,
+                "date": datetime.now().isoformat(),
+            },
+        }
+
+        bot.send_chat_action(chat_id, "typing")
+        result = rag.search_web(text, username, history)
+        reply_msg = bot.reply_to(message, result)
+        add_to_history(chat_id, f"От @{config.BOT_USERNAME}: {result}")
+        bot_doc = {
+            "id": f"{chat_id}_{reply_msg.message_id}",
+            "text": f"От @{config.BOT_USERNAME}: {result}",
+            "metadata": {
+                "author": f"@{config.BOT_USERNAME}",
+                "date": datetime.now().isoformat(),
+            },
+        }
+        rag.index_documents([bot_doc])
+        return
+
     bot.send_chat_action(chat_id, "typing")
     answer = rag.query(text, username, history)
 
@@ -150,6 +202,7 @@ def handle_reply_to_bot(message):
         },
     }
     rag.index_documents([bot_doc])
+    return
 
 
 # 3) Трекинг всех прочих текстовых сообщений:

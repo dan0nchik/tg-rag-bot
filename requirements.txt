@@ -1,14 +1,13 @@
 pyTelegramBotAPI
 transformers
-optimum[exporters]
-llama-index-embeddings-huggingface-optimum
 llama-index
 llama-index-vector-stores-qdrant
 llama-index-readers-file
 llama-index-embeddings-together
 llama-index-llms-together
 qdrant-client
-litellm
 python-dotenv
 tqdm
 sentence-transformers
+llama-index-tools-bing-search
+llama-index-tools-duckduckgo

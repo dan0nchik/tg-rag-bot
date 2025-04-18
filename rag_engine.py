@@ -1,90 +1,17 @@
+from llm_interface import SentenceTransformerEmbeddings
 import logging
-from llama_index.core import VectorStoreIndex, StorageContext
+from llama_index.core import VectorStoreIndex
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.embeddings.together import TogetherEmbedding
 import config
 import db
 from llama_index.core import Settings, VectorStoreIndex, Document
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 import db
-from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.llms.together import TogetherLLM
 import config
-from llama_index.core import get_response_synthesizer
-from qdrant_client import QdrantClient, models
-from llama_index.embeddings.huggingface_optimum import OptimumEmbedding
-
-from typing import Any, List, Union
-from sentence_transformers import SentenceTransformer
-from llama_index.core.embeddings import BaseEmbedding
-
-
-class SentenceTransformerEmbeddings(BaseEmbedding):
-    """
-    Adapter for SentenceTransformer models in llama_index.
-
-    Args:
-        model_name: HuggingFace model identifier for SentenceTransformer.
-        normalize_embeddings: Whether to normalize embeddings (default True).
-    """
-
-    def __init__(
-        self,
-        model_name: str = "ai-forever/ru-en-RoSBERTa",
-        normalize_embeddings: bool = True,
-        **kwargs: Any,
-    ) -> None:
-        super().__init__(**kwargs)
-        # Load the SentenceTransformer model
-        self._model = SentenceTransformer(model_name)
-        # Use a private attribute to avoid Pydantic conflicts
-        self._normalize_embeddings = normalize_embeddings
-
-    def _get_query_embedding(self, query: str) -> List[float]:
-        """
-        Generate an embedding for a single query string.
-        """
-        embeddings = self._model.encode(
-            [query], normalize_embeddings=self._normalize_embeddings
-        )
-        # Convert to Python list
-        emb = embeddings[0]
-        return emb.tolist() if hasattr(emb, "tolist") else list(emb)
-
-    def _get_text_embedding(self, text: str) -> List[float]:
-        """
-        Generate an embedding for a single text string.
-        """
-        embeddings = self._model.encode(
-            [text], normalize_embeddings=self._normalize_embeddings
-        )
-        emb = embeddings[0]
-        return emb.tolist() if hasattr(emb, "tolist") else list(emb)
-
-    def _get_text_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """
-        Generate embeddings for a list of text strings.
-        """
-        embeddings = self._model.encode(
-            texts, normalize_embeddings=self._normalize_embeddings
-        )
-        # Ensure Python native lists
-        result: List[List[float]] = []
-        for emb in embeddings:
-            result.append(emb.tolist() if hasattr(emb, "tolist") else list(emb))
-        return result
-
-    # Async wrappers matching llama_index signature
-    async def _aget_query_embedding(self, query: str) -> List[float]:  # noqa: F821
-        return self._get_query_embedding(query)
-
-    async def _aget_text_embedding(self, text: str) -> List[float]:  # noqa: F821
-        return self._get_text_embedding(text)
-
-    async def _aget_text_embeddings(
-        self, texts: List[str]
-    ) -> List[List[float]]:  # noqa: F821
-        return self._get_text_embeddings(texts)
+from qdrant_client import models
+from llama_index.core.tools.tool_spec.load_and_search.base import LoadAndSearchToolSpec
+from llama_index.tools.duckduckgo.base import DuckDuckGoSearchToolSpec
 
 
 Settings.embed_model = SentenceTransformerEmbeddings()
@@ -103,6 +30,7 @@ class RagEngine:
     def __init__(self):
         # Инициализируем Qdrant клиент и векторное хранилище
         self.client = db.get_qdrant_client()
+        self.web_search_spec = DuckDuckGoSearchToolSpec()
         if not self.client.collection_exists(config.QDRANT_COLLECTION):
             self.client.create_collection(
                 collection_name=config.QDRANT_COLLECTION,
@@ -117,6 +45,40 @@ class RagEngine:
         self.index = VectorStoreIndex.from_vector_store(
             vector_store=self.vector_store, embed_model=Settings.embed_model
         )
+
+    def search_web(self, query_text: str, from_username: str, history: list) -> str:
+        query_text = " ".join(query_text.split(":")[1:])  # убираем 'От @Username:'
+        results = self.web_search_spec.duckduckgo_full_search(query_text, "ru-ru")
+        prompt = f"""
+Ты — бот в групповом чате трёх друзей: Дани {config.DAN_USERNAME}, Лёши {config.ALEX_USERNAME} и Тёмы {config.ARTEM_USERNAME}. Твоя задача — реагировать адекватно и в тон последнему сообщению:
+
+- Если сообщение юмористическое, бытовое или неформальное, отвечай коротко, смешно и с сарказмом. Можешь пошутить грубовато, пошло или использовать локальные мемы.
+- Если сообщение серьёзное, требующее нормального ответа или совета, отвечай серьёзно, кратко и по делу, без шуток и сарказма.
+
+Используй память (<MEMORY>) — последние {config.N_LAST_MESSAGES} сообщений, а также сайты внутри <SEARCH> из Google поиска. Опирайся на источники при ответе.
+
+Примеры:
+
+Юмористическое сообщение:
+Лёша: "Опять проебал ключи от дома"
+Бот: "Пора уже вживлять чип, как коту."
+
+Серьёзное сообщение:
+Даня: "Ребят, подскажите хороший фильм на вечер"
+Бот: "Посмотри 'Исчезнувшую', если хочешь триллер, от которого не оторвёшься."
+
+История чата:
+<MEMORY>{chr(10).join(history)}</MEMORY>
+
+Теперь ответь на последнее сообщение от {from_username}: "{query_text}".
+
+Найденные сайты:
+<SEARCH>{results}</SEARCH>
+"""
+        logging.info(f"{prompt}\n\n")
+        llm_response = Settings.llm.complete(prompt)
+
+        return llm_response.text
 
     def index_documents(self, docs: list):
         """
