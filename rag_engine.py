@@ -107,7 +107,7 @@ class RagEngine:
             self.client.create_collection(
                 collection_name=config.QDRANT_COLLECTION,
                 vectors_config=models.VectorParams(
-                    size=768, distance=models.Distance.COSINE
+                    size=1024, distance=models.Distance.COSINE
                 ),
             )
         self.vector_store = QdrantVectorStore(
