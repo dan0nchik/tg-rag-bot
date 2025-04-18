@@ -161,3 +161,4 @@ cython_debug/
 
 qdrant_storage
 production.yaml
+.env_prod
