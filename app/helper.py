@@ -92,6 +92,10 @@ class MessageProcessor:
         self.add_to_history(chat_id, formatted_text)
         return "✅ Запомнил"
 
+    def process_all_command(self) -> str:
+        """Processes @all command and returns a message mentioning all users"""
+        return f"{config.DAN_USERNAME} {config.ALEX_USERNAME} {config.ARTEM_USERNAME} "
+
     def process_web_search(
         self,
         chat_id: int,

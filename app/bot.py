@@ -126,6 +126,10 @@ class RagBot:
         """Check if text contains a web search command"""
         return "загугли" in text.lower()
 
+    def _is_all_command(self, text: str) -> bool:
+        """Check if text contains an @all command"""
+        return "@all" in text.lower()
+
     def _extract_mention_text(self, message) -> str:
         """Extract text after bot mention"""
         return message.text.replace(f"@{self.bot_username}", "", 1).strip()
@@ -135,6 +139,11 @@ class RagBot:
         chat_id = message.chat.id
         username = self._get_username(message)
         text = message.text
+
+        # Handle "all" command
+        if self._is_all_command(text):
+            self.bot.reply_to(message, self.processor.process_all_command())
+            return
 
         self.processor.track_message(chat_id, message.message_id, username, text)
 
