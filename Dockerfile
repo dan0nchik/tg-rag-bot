@@ -7,7 +7,7 @@ COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
 # Копируем весь код
-COPY . /app
+COPY ./app /app
 
 # Запускаем бота
 CMD ["python", "bot.py"]
