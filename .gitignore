@@ -163,3 +163,4 @@ qdrant_storage
 production.yaml
 .env_prod
 .env.PROD
+app/upload_data.py
