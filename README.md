@@ -2,7 +2,7 @@
  
 [![Deploy to Server](https://github.com/dan0nchik/tg-rag-bot/actions/workflows/deploy.yml/badge.svg)](https://github.com/dan0nchik/tg-rag-bot/actions/workflows/deploy.yml)
 
-Self-hosted chat bot based on RAG for friend's group chat. 
+Self-hosted Telegram chat bot based on RAG for friend's group chat. 
 
 ## Features
 
