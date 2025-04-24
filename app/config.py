@@ -23,3 +23,14 @@ N_LAST_MESSAGES = int(os.getenv("N_LAST_MESSAGES", 10))
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE = os.getenv("SEARCH_ENGINE")
+
+PENDING_MESSAGES = [
+    "Погодь...",
+    "Подожди...",
+    "погоди...",
+    "Ща...",
+    "Погоди-ка, я ща...",
+    "ща все будет...",
+    "ок щас...",
+    "падажжи...",
+]

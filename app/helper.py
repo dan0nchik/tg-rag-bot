@@ -60,9 +60,7 @@ class MessageProcessor:
 
     def flush_current_doc(self, chat_id: int) -> None:
         """Index and clear the current document buffer for a chat"""
-        doc = self.current_doc.pop(chat_id, None)
-        if doc:
-            self.index_document(doc)
+        self.current_doc.pop(chat_id, None)
 
     def track_message(
         self, chat_id: int, message_id: int, username: str, text: str
@@ -116,11 +114,6 @@ class MessageProcessor:
         bot_text = self.format_bot_response(bot_username, result)
         self.add_to_history(chat_id, bot_text)
 
-        bot_doc = self.create_document(
-            chat_id, bot_message_id, bot_text, f"@{bot_username}"
-        )
-        self.index_document(bot_doc)
-
         return result
 
     def process_query(
@@ -142,10 +135,5 @@ class MessageProcessor:
         # Create and index bot response
         bot_text = self.format_bot_response(bot_username, answer)
         self.add_to_history(chat_id, bot_text)
-
-        bot_doc = self.create_document(
-            chat_id, bot_message_id, bot_text, f"@{bot_username}"
-        )
-        self.index_document(bot_doc)
 
         return answer

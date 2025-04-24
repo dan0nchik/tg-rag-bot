@@ -1,4 +1,5 @@
 import logging
+import random
 from telebot import TeleBot, logger as telebot_logger
 import config as config
 from helper import MessageProcessor
@@ -86,7 +87,9 @@ class RagBot:
 
         # Handle web search command
         if self._is_web_search_command(text):
-            reply_msg = self.bot.reply_to(message, "Ищу информацию...")
+            reply_msg = self.bot.reply_to(
+                message, random.choice(config.PENDING_MESSAGES)
+            )
             result = self.processor.process_web_search(
                 chat_id,
                 message.message_id,
@@ -101,7 +104,7 @@ class RagBot:
             return
 
         # Handle normal RAG query
-        reply_msg = self.bot.reply_to(message, "Обрабатываю запрос...")
+        reply_msg = self.bot.reply_to(message, random.choice(config.PENDING_MESSAGES))
         answer = self.processor.process_query(
             chat_id,
             message.message_id,
