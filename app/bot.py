@@ -23,20 +23,23 @@ class RagBot:
 
     def _setup_handlers(self) -> None:
         """Configure message handlers"""
-        # Fix: Remove the function calls, just pass the handler functions
+        # Order matters! Most specific handlers first
+
+        # 1. Handle mentions FIRST (most specific)
         self.bot.message_handler(
-            func=lambda m: m.text and m.text.strip().startswith(f"@{self.bot_username}")
+            func=lambda m: m.text and f"@{self.bot_username}" in m.text
         )(self._handle_mention)
 
+        # 2. Handle replies to bot messages
         self.bot.message_handler(
             func=lambda m: m.reply_to_message
             and m.reply_to_message.from_user
             and m.reply_to_message.from_user.username == self.bot_username
         )(self._handle_reply)
 
+        # 3. Handle regular messages LAST (least specific, catches everything else)
         self.bot.message_handler(
-            func=lambda m: m.text
-            and not m.text.strip().startswith(f"@{self.bot_username}")
+            func=lambda m: m.text and f"@{self.bot_username}" not in m.text
         )(self.handle_regular_message)
 
     def _handle_mention(self, message):
