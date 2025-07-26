@@ -7,8 +7,8 @@ services:
     depends_on:
       - qdrant
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - ragnet
 
   qdrant:
     image: qdrant/qdrant
@@ -19,5 +19,9 @@ services:
       - ./qdrant_storage:/qdrant/storage
       - ./qdrant_config:/qdrant/config
     restart: unless-stopped
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - ragnet
+
+networks:
+  ragnet:
+    driver: bridge
