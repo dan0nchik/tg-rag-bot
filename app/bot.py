@@ -23,55 +23,48 @@ class RagBot:
 
     def _setup_handlers(self) -> None:
         """Configure message handlers"""
+        # Fix: Remove the function calls, just pass the handler functions
         self.bot.message_handler(
             func=lambda m: m.text and m.text.strip().startswith(f"@{self.bot_username}")
-        )(self._create_mention_handler())
+        )(self._handle_mention)
 
         self.bot.message_handler(
             func=lambda m: m.reply_to_message
             and m.reply_to_message.from_user
             and m.reply_to_message.from_user.username == self.bot_username
-        )(self._create_reply_handler())
+        )(self._handle_reply)
 
         self.bot.message_handler(
             func=lambda m: m.text
             and not m.text.strip().startswith(f"@{self.bot_username}")
         )(self.handle_regular_message)
 
-    def _create_mention_handler(self) -> Callable:
-        """Create handler for mention commands"""
+    def _handle_mention(self, message):
+        """Handle mention commands"""
+        chat_id = message.chat.id
+        username = self._get_username(message)
+        text = self._extract_mention_text(message)
 
-        def handler(message):
-            chat_id = message.chat.id
-            username = self._get_username(message)
-            text = self._extract_mention_text(message)
+        if not text:
+            self.bot.reply_to(
+                message,
+                f"❗️ Укажи вопрос после @{self.bot_username}.\n"
+                f"Пример: @{self.bot_username} Как дела?",
+            )
+            return
 
-            if not text:
-                self.bot.reply_to(
-                    message,
-                    f"❗️ Укажи вопрос после @{self.bot_username}.\n"
-                    f"Пример: @{self.bot_username} Как дела?",
-                )
-                return
+        self._process_command(message, chat_id, username, text)
 
-            self._process_command(message, chat_id, username, text)
+    def _handle_reply(self, message):
+        """Handle replies to bot messages"""
+        chat_id = message.chat.id
+        username = self._get_username(message)
+        text = message.text.strip()
 
-        return handler
+        if not text:
+            return
 
-    def _create_reply_handler(self) -> Callable:
-        """Create handler for replies to bot messages"""
-
-        def handler(message):
-            chat_id = message.chat.id
-            username = self._get_username(message)
-            text = message.text.strip()
-
-            if not text:
-                return
-
-            self._process_command(message, chat_id, username, text)
-
-        return handler
+        self._process_command(message, chat_id, username, text)
 
     def _process_command(self, message, chat_id: int, username: str, text: str) -> None:
         """Central command processing logic for both mentions and replies"""
