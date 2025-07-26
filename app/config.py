@@ -7,7 +7,7 @@ TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 ADMINS = [int(x) for x in os.getenv("ADMINS", "").split(",") if x]
 
-QDRANT_HOST = os.getenv("QDRANT_HOST", "http://localhost:6333")
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost:6333")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
 QDRANT_COLLECTION = os.getenv("QDRANT_COLLECTION", "telegram_history")
 
