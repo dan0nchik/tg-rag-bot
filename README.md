@@ -10,4 +10,4 @@ Self-hosted Telegram chat bot based on RAG for friend's group chat.
 - Long term memory: RAG with QDrant as vector database. Allows bot to remember facts about chat members and previous messages
 - Short-term memory: sliding window of N last messages in the chat
 - Can look up facts in the Internet using DuckDuckGo
-- More LlamaIndex agentic capabilities are coming soon!
+- More LlamaIndex agentic capabilities are coming soon! 
