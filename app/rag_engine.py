@@ -83,7 +83,7 @@ class RagEngine:
             chat_history=chr(10).join(history),  # chr(10) - перенос строки
             from_username=from_username,
             query_text=query_text,
-            found_nodes=chr(5).join(nodes),
+            found_nodes=chr(10).join(nodes),
         )
 
         logging.info(f"{prompt}\n\n")
