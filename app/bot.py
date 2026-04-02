@@ -1,5 +1,6 @@
 import logging
 import random
+from datetime import datetime, timedelta, timezone
 from telebot import TeleBot, logger as telebot_logger
 import config as config
 from helper import MessageProcessor
@@ -23,24 +24,77 @@ class RagBot:
 
     def _setup_handlers(self) -> None:
         """Configure message handlers"""
-        # Order matters! Most specific handlers first
 
-        # 1. Handle mentions FIRST (most specific)
+        # 1. Handle voice messages
+        self.bot.message_handler(content_types=["voice"])(self._handle_voice)
+
+        # 2. Handle stickers (random chance to react)
+        self.bot.message_handler(content_types=["sticker"])(self._handle_sticker)
+
+        # 3. Handle mentions (most specific text handler)
         self.bot.message_handler(
             func=lambda m: m.text and f"@{self.bot_username}" in m.text
         )(self._handle_mention)
 
-        # 2. Handle replies to bot messages
+        # 4. Handle replies to bot messages
         self.bot.message_handler(
             func=lambda m: m.reply_to_message
             and m.reply_to_message.from_user
             and m.reply_to_message.from_user.username == self.bot_username
         )(self._handle_reply)
 
-        # 3. Handle regular messages LAST (least specific, catches everything else)
+        # 5. Handle regular messages LAST (catches everything else)
         self.bot.message_handler(
             func=lambda m: m.text and f"@{self.bot_username}" not in m.text
         )(self.handle_regular_message)
+
+    def _handle_voice(self, message):
+        """React to voice messages"""
+        responses = [
+            "я голосовые не слушаю, я не твоя мама",
+            "напиши текстом, лень слушать",
+            "голосовое в 2026? серьёзно?",
+            "а можно текстом? я робот, у меня ушей нет",
+            "пропускаю голосовое с чистой совестью",
+        ]
+        if random.random() < 0.6:  # 60% chance to react
+            self.bot.reply_to(message, random.choice(responses))
+
+    def _handle_sticker(self, message):
+        """Occasionally react to stickers"""
+        responses = [
+            "ого какой стикер, я прям впечатлён",
+            "👍",
+            "...",
+            "стикерами общаемся? ну ок",
+        ]
+        if random.random() < 0.15:  # 15% chance to react
+            self.bot.reply_to(message, random.choice(responses))
+
+    def _check_passive_triggers(self, message) -> bool:
+        """Check for passive triggers in regular messages. Returns True if triggered."""
+        text_lower = message.text.lower()
+        for trigger, responses in config.PASSIVE_TRIGGERS.items():
+            if trigger in text_lower:
+                if random.random() < 0.7:  # 70% chance to fire
+                    self.bot.reply_to(message, random.choice(responses))
+                return True
+        return False
+
+    def _check_late_night(self, message) -> bool:
+        """Roast someone for texting at 3-5 AM Moscow time."""
+        hour = datetime.now(config.MSK).hour
+        if 3 <= hour < 5 and random.random() < 0.3:  # 30% chance
+            responses = [
+                "ты чего не спишь",
+                "иди спать",
+                "тебе завтра на работу, нет?",
+                "3 часа ночи, а ты в телеге сидишь",
+                "ложись спать, я серьёзно",
+            ]
+            self.bot.reply_to(message, random.choice(responses))
+            return True
+        return False
 
     def _handle_mention(self, message):
         """Handle mention commands"""
@@ -145,6 +199,13 @@ class RagBot:
             return
 
         self.processor.track_message(chat_id, message.message_id, username, text)
+
+        # Check passive triggers (bot reacts without being mentioned)
+        if self._check_passive_triggers(message):
+            return
+
+        # Late night roast
+        self._check_late_night(message)
 
     def run(self) -> None:
         """Start the bot and begin polling for messages"""

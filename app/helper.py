@@ -1,4 +1,5 @@
 import logging
+import random
 from telebot import TeleBot, logger as telebot_logger
 import config as config
 from rag_engine import RagEngine
@@ -88,7 +89,7 @@ class MessageProcessor:
         doc = self.create_document(chat_id, message_id, formatted_text, username)
         self.index_document(doc)
         self.add_to_history(chat_id, formatted_text)
-        return "✅ Запомнил"
+        return random.choice(config.REMEMBER_RESPONSES)
 
     def process_all_command(self) -> str:
         """Processes @all command and returns a message mentioning all users"""

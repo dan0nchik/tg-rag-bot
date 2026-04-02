@@ -48,10 +48,11 @@ class RagEngine:
             dan_username=config.DAN_USERNAME,
             alex_username=config.ALEX_USERNAME,
             artem_username=config.ARTEM_USERNAME,
-            chat_history=chr(10).join(history),  # chr(10) - перенос строки
+            chat_history=chr(10).join(history),
             from_username=from_username,
             query_text=query_text,
             results=results,
+            mood=config.get_mood(),
         )
         logging.info(f"{prompt}\n\n")
         llm_response = Settings.llm.complete(prompt)
@@ -80,10 +81,11 @@ class RagEngine:
             dan_username=config.DAN_USERNAME,
             alex_username=config.ALEX_USERNAME,
             artem_username=config.ARTEM_USERNAME,
-            chat_history=chr(10).join(history),  # chr(10) - перенос строки
+            chat_history=chr(10).join(history),
             from_username=from_username,
             query_text=query_text,
             found_nodes=chr(10).join(nodes),
+            mood=config.get_mood(),
         )
 
         logging.info(f"{prompt}\n\n")
