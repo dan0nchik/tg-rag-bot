@@ -2,16 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Сначала ставим torch CPU-only (намного легче чем полный ~2GB → ~200MB)
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install torch --index-url https://download.pytorch.org/whl/cpu
+# uv — в 10-100x быстрее pip для resolve и install
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Зависимости отдельным слоем — кэшируется пока requirements.txt не меняется
+# Torch CPU-only отдельным слоем
 COPY requirements.txt /app/
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --index-url https://download.pytorch.org/whl/cpu torch && \
+    uv pip install --system -r requirements.txt
 
-# Код копируем последним — меняется чаще всего
 COPY ./app /app
 
 CMD ["python", "bot.py"]
